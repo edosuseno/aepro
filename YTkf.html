@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencari Kata Kunci YouTube AI</title>
+    <!-- Muat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Muat Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        .card-shadow:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .volume-label {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 9999px; 
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            min-width: 70px; 
+            text-align: center;
+        }
+        .volume-tinggi { background-color: #d1fae5; color: #065f46; } /* Hijau */
+        .volume-sedang { background-color: #fef3c7; color: #b45309; } /* Kuning */
+        .volume-rendah { background-color: #fee2e2; color: #b91c1c; } /* Merah */
+        
+        /* Gaya Tabel */
+        .keyword-table th, .keyword-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .keyword-table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+        .keyword-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        .seo-detail {
+            background-color: #f8f8ff; /* Warna latar belakang ringan untuk detail SEO */
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e0e0f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .seo-detail strong {
+            display: block;
+            color: #374151;
+            margin-top: 5px;
+        }
+        .seo-detail p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        /* Gaya Summary Box Baru */
+        .summary-box {
+            background-color: #ecfdf5; /* Light Green Background */
+            border: 2px solid #a7f3d0; /* Soft Border */
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        .summary-item {
+            flex: 1;
+        }
+        .summary-interest {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+        .interest-tinggi { color: #059669; } /* Hijau */
+        .interest-sedang { color: #d97706; } /* Jingga */
+        .interest-rendah { color: #dc2626; } /* Merah */
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-start justify-center">
+
+    <div class="w-full max-w-6xl bg-white rounded-xl p-6 sm:p-10 card-shadow">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 flex items-center justify-center space-x-2">
+                <i data-lucide="gem" class="w-8 h-8 text-red-600"></i>
+                <span>Pencari Kata Kunci YouTube AI</span>
+            </h1>
+            <p class="text-gray-500 mt-2 text-lg">Temukan ide konten video yang sedang tren dan analisis potensi pencariannya.</p>
+        </header>
+
+        <!-- Form Input -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label for="topicInput" class="block text-sm font-medium text-gray-700 mb-1">Topik Minat (Contoh: Resep Masakan Cepat, Teknologi Gaming)</label>
+                <input type="text" id="topicInput" placeholder="Masukkan topik yang Anda minati..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 shadow-sm" required>
+            </div>
+            <div>
+                <label for="countryInput" class="block text-sm font-medium text-gray-700 mb-1">Negara Target</label>
+                <!-- DIUBAH MENJADI SELECT DROPDOWN -->
+                <select id="countryInput" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 shadow-sm" required>
+                    <option value="" disabled selected>Pilih Negara Target...</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="generateButton" onclick="generateKeywords()" class="btn-primary w-full bg-red-600 text-white font-semibold py-3 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500 focus:ring-opacity-50 flex items-center justify-center space-x-2">
+            <i data-lucide="zap"></i>
+            <span>Hasilkan Analisis Kata Kunci & Optimasi SEO</span>
+        </button>
+
+        <!-- Loading & Message Area -->
+        <div id="loadingIndicator" class="mt-8 text-center hidden">
+            <div class="flex items-center justify-center space-x-2">
+                <svg class="animate-spin h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="loadingText" class="text-red-600 font-medium">AI sedang menganalisis tren real-time (Tahap 1/2)...</span>
+            </div>
+        </div>
+
+        <!-- Output Area -->
+        <div id="resultsOutput" class="mt-10 pt-6 border-t border-gray-200 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                <i data-lucide="target" class="w-6 h-6 text-red-600"></i>
+                <span>Analisis Topik & Rekomendasi</span>
+            </h2>
+            <!-- AREA BARU UNTUK SUMMARY -->
+            <div id="analysisSummary" class="summary-box">
+                <p class="text-gray-400 italic">Analisis akan muncul di sini setelah pemrosesan.</p>
+            </div>
+            <!-- AKHIR AREA BARU -->
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center space-x-2 mt-8">
+                <i data-lucide="bar-chart-3" class="w-6 h-6 text-red-600"></i>
+                <span>Hasil Optimalisasi SEO (Tinggi & Sedang)</span>
+            </h2>
+            <div id="keywordList" class="bg-gray-50 p-5 rounded-lg border border-gray-100 min-h-[100px] text-gray-700">
+                <p class="text-gray-400 italic">Masukkan topik dan negara di atas, lalu tekan tombol untuk memulai.</p>
+            </div>
+            
+            <p id="lowVolumeNote" class="text-sm text-gray-500 mt-4 italic hidden">
+                *Kata kunci dengan volume Rendah tidak disertakan dalam saran optimalisasi SEO ini sesuai permintaan.
+            </p>
+
+            <h3 class="text-lg font-semibold text-gray-700 mt-6 mb-2">Catatan Penting (Sumber Real-time)</h3>
+            <ul id="sourceList" class="text-sm text-gray-500 space-y-1 list-disc list-inside">
+                <!-- Sumber dari Google Search akan masuk di sini -->
+            </ul>
+        </div>
+        
+        <!-- Error Message Area -->
+        <div id="errorBox" class="mt-8 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden" role="alert">
+            <p id="errorMessage" class="font-medium"></p>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // Kunci API yang disediakan pengguna
+        const providedApiKey = "AIzaSyCNGP5jAdtQmotEtMC3ekmlIbKThuJ39dI"; 
+        
+        // Menggunakan kunci yang disediakan pengguna.
+        const apiKey = providedApiKey || (typeof __api_key !== 'undefined' ? __api_key : ""); 
+        
+        const modelName = "gemini-2.5-flash-preview-09-2025";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+        // DOM Elements
+        const topicInput = document.getElementById('topicInput');
+        const countryInput = document.getElementById('countryInput');
+        const generateButton = document.getElementById('generateButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const loadingText = document.getElementById('loadingText');
+        const resultsOutput = document.getElementById('resultsOutput');
+        const keywordList = document.getElementById('keywordList');
+        const sourceList = document.getElementById('sourceList');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessageElement = document.getElementById('errorMessage');
+        const lowVolumeNote = document.getElementById('lowVolumeNote');
+        const analysisSummary = document.getElementById('analysisSummary'); // Elemen Baru
+        
+        // Daftar Negara untuk Dropdown
+        const countryList = [
+            { code: "ID", name: "Indonesia" },
+            { code: "MY", name: "Malaysia" },
+            { code: "SG", name: "Singapura" },
+            { code: "TH", name: "Thailand" },
+            { code: "PH", name: "Filipina" },
+            { code: "VN", name: "Vietnam" },
+            { code: "AU", name: "Australia" },
+            { code: "IN", name: "India" },
+            { code: "JP", name: "Jepang" },
+            { code: "KR", name: "Korea Selatan" },
+            { code: "US", name: "Amerika Serikat" },
+            { code: "GB", name: "Inggris Raya" },
+            { code: "DE", name: "Jerman" },
+            { code: "CN", name: "China" },
+            { code: "BR", name: "Brazil" },
+            { code: "MX", name: "Meksiko" },
+        ];
+        
+        function populateCountries() {
+            countryList.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.name; 
+                option.textContent = country.name;
+                countryInput.appendChild(option);
+            });
+        }
+
+        async function runWithBackoff(fn, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        throw error;
+                    }
+                    const delay = Math.pow(2, i) * 1000;
+                    console.log(`Percobaan ulang API ke-${i + 2} setelah menunggu ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        function showLoading(isLoading, stage = 0) {
+            generateButton.disabled = isLoading;
+            if (isLoading) {
+                let text = "AI sedang menganalisis...";
+                if (stage === 1) text = "AI sedang mencari tren real-time (Tahap 1/2)...";
+                if (stage === 2) text = "AI sedang menyusun optimasi SEO (Tahap 2/2)...";
+
+                generateButton.innerHTML = '<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>' + text + '</span>';
+                loadingText.textContent = text;
+            } else {
+                generateButton.innerHTML = '<i data-lucide="zap"></i><span>Hasilkan Analisis Kata Kunci & Optimasi SEO</span>';
+            }
+            loadingIndicator.classList.toggle('hidden', !isLoading);
+            errorBox.classList.add('hidden');
+            
+            setTimeout(() => lucide.createIcons(), 0);
+        }
+
+        function displayError(message) {
+            errorMessageElement.textContent = message;
+            errorBox.classList.remove('hidden');
+            resultsOutput.classList.add('hidden');
+        }
+
+        /**
+         * Mengubah data JSON menjadi tabel HTML yang diformat.
+         * Hanya memproses kata kunci dengan Volume 'Tinggi' atau 'Sedang'.
+         */
+        function renderKeywordTable(keywordData) {
+            // ... (Fungsi ini tetap sama dari versi sebelumnya)
+            if (!keywordData || keywordData.length === 0) {
+                return '<p class="p-4 text-gray-500">Tidak ada kata kunci yang dihasilkan dalam format yang sesuai.</p>';
+            }
+            
+            // Ekstrak data analysis dan keywords dari Objek JSON
+            const topicAnalysis = keywordData.topicAnalysis;
+            const keywords = keywordData.keywords;
+
+            // Render Summary Analysis (GAMBARAN UMUM)
+            const overallInterest = topicAnalysis.overallInterest.toLowerCase();
+            const interestClass = `interest-${overallInterest}`;
+            
+            analysisSummary.innerHTML = `
+                <div class="summary-item">
+                    <h4 class="text-sm font-semibold text-gray-600">Gambaran Umum Minat Topik ("${topicInput.value.trim()}")</h4>
+                    <p class="summary-interest ${interestClass}">${overallInterest.toUpperCase()}</p>
+                    <p class="text-xs text-gray-700 mt-1">Estimasi minat total di ${countryInput.value} berdasarkan data tren yang dianalisis.</p>
+                </div>
+                <div class="summary-item border-l border-gray-300 pl-6">
+                    <h4 class="text-sm font-semibold text-gray-600">Saran Topik Terbaik dari AI</h4>
+                    <p class="text-sm text-gray-800 font-medium mt-2">${topicAnalysis.bestTopicRecommendation}</p>
+                    <p class="text-xs text-gray-500 mt-1">Fokus pada ceruk ini untuk potensi pertumbuhan tertinggi.</p>
+                </div>
+            `;
+
+            // Render Keyword Table
+            let tableRows = '';
+            let hasHighOrMedium = false;
+
+            keywords.forEach((item, index) => {
+                const volume = item.volume.toLowerCase();
+                const keyword = item.keyword;
+                const analysis = item.analysis;
+                const titleSuggestion = item.seoOptimization.titleSuggestion;
+                const descriptionSuggestion = item.seoOptimization.descriptionSuggestion;
+                const tags = item.seoOptimization.tags || [];
+
+                const volumeClass = `volume-${volume}`;
+                
+                if (volume === 'tinggi' || volume === 'sedang') {
+                    hasHighOrMedium = true;
+                    
+                    // Menggabungkan array tags menjadi string yang dipisahkan koma
+                    const tagsHtml = tags.join(', ');
+
+                    tableRows += `
+                        <tr class="align-top">
+                            <td class="w-1/4">
+                                <div>
+                                    <span class="volume-label ${volumeClass}">${volume.toUpperCase()}</span>
+                                    <strong class="text-lg text-gray-800">${keyword}</strong>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">${analysis}</p>
+                            </td>
+                            <td class="w-3/4">
+                                <div class="seo-detail">
+                                    <strong>Judul Optimal:</strong>
+                                    <p class="text-sm font-semibold text-red-700">${titleSuggestion}</p>
+                                    
+                                    <strong>Deskripsi (2 Baris Awal):</strong>
+                                    <p>${descriptionSuggestion}</p>
+
+                                    <strong>Saran Tag SEO (Siap Copy-Paste):</strong>
+                                    <p class="mt-2 text-sm text-gray-800">${tagsHtml}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (!hasHighOrMedium) {
+                return '<p class="p-4 text-gray-500">Semua kata kunci yang dihasilkan memiliki volume Rendah dan diabaikan dari analisis SEO ini sesuai permintaan.</p>';
+            }
+
+            return `
+                <div class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 keyword-table">
+                        <thead>
+                            <tr>
+                                <th class="w-1/4">Kata Kunci & Volume</th>
+                                <th class="w-3/4">Saran Optimalisasi SEO (Judul, Deskripsi, Tag)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function generateKeywords() {
+            const topic = topicInput.value.trim();
+            const country = countryInput.value; 
+
+            if (!topic || !country) {
+                displayError("Mohon masukkan Topik Minat dan pilih Negara Target.");
+                return;
+            }
+
+            // Reset UI
+            analysisSummary.innerHTML = '<p class="text-gray-400 italic">Analisis akan muncul di sini setelah pemrosesan.</p>';
+            keywordList.innerHTML = '<p class="p-4 text-gray-400 italic">AI sedang mencari tren...</p>';
+            resultsOutput.classList.remove('hidden');
+            lowVolumeNote.classList.add('hidden');
+            sourceList.innerHTML = '<li class="text-gray-400">Sedang mengumpulkan data real-time...</li>';
+            
+            showLoading(true, 1); // Tahap 1: Riset Tren
+
+            // --- TAHAP 1: RISet TREN (Menggunakan Google Search Grounding) ---
+            const groundingSystemPrompt = "Anda adalah analis SEO dan tren YouTube. Gunakan alat pencarian Anda untuk mencari 7-10 tren, berita, atau postingan media sosial terbaru yang berkaitan dengan topik yang diminta. Berikan output HANYA dalam bentuk teks mentah per baris (satu tren per baris), sertakan kata kunci pencarian yang relevan, 1 kalimat alasan tren, **DAN URL SUMBER REFERENSI yang valid**. Output harus informatif dan dapat diteruskan ke model lain.";
+            
+            // PERUBAHAN DI SINI: Menyebutkan platform sosial secara eksplisit
+            const groundingUserQuery = `Temukan 7-10 tren, berita, atau postingan media sosial PALING POPULER di bidang "${topic}" untuk audiens "${country}". **Fokus pada tren yang berasal dari YouTube, TikTok, Instagram, atau Facebook.** Format setiap hasil sebagai "Kata Kunci Relevan: Alasan Singkat Mengapa Ini Trending. (URL Sumber)"`;
+            
+            const groundingPayload = {
+                contents: [{ parts: [{ text: groundingUserQuery }] }],
+                tools: [{ "google_search": {} }], // Grounding diaktifkan di sini
+                systemInstruction: { parts: [{ text: groundingSystemPrompt }] },
+            };
+
+            let groundingText = '';
+            let sources = [];
+
+            try {
+                const groundingFetchOperation = async () => {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(groundingPayload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        console.error("Kesalahan Respons API TAHAP 1 HTTP:", response.status, errorBody);
+                        throw new Error(`Kesalahan server Tahap 1 (${response.status}). Coba lagi.`);
+                    }
+
+                    return response.json();
+                };
+
+                const groundingResult = await runWithBackoff(groundingFetchOperation);
+                
+                const candidate = groundingResult.candidates?.[0];
+                if (!candidate || !candidate.content?.parts?.[0]?.text) {
+                     // Jika respons kosong, ini menandakan Grounding gagal mengutip.
+                     throw new Error("Grounding Gagal: AI tidak menemukan sumber yang dapat dikutip untuk tren saat ini. Coba topik lain atau periksa koneksi.");
+                }
+                
+                groundingText = candidate.content.parts[0].text;
+                
+                // Ekstrak Sumber (Citations)
+                const groundingMetadata = candidate.groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({ uri: attribution.web?.uri, title: attribution.web?.title }))
+                        .filter(source => source.uri && source.title); 
+                }
+
+            } catch (error) {
+                console.error("Kesalahan Tahap 1 (Grounding):", error);
+                
+                // FALLBACK yang Kuat
+                sourceList.innerHTML = `<li class="text-red-500">Grounding Gagal: (${error.message.substring(0, 50)}...). Melanjutkan dengan analisis internal model (data mungkin tidak real-time).</li>`;
+                
+                // Fallback Text: Berikan input yang cukup kepada Tahap 2 agar JSON tetap dihasilkan
+                groundingText = `Berikut adalah ide kata kunci dan tren untuk topik "${topic}" di "${country}" (Berdasarkan pengetahuan internal model):
+                - ${topic} tutorial terbaru: Analisis umum dari model.
+                - Review ${topic} 2025: Analisis umum dari model.
+                - Tips and trik ${topic} pemula: Analisis umum dari model.`; 
+            }
+
+            // Update UI Sumber
+            sourceList.innerHTML = '';
+            if (sources.length > 0) {
+                sources.forEach((source) => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = source.uri;
+                    link.target = "_blank";
+                    link.className = "text-red-600 hover:text-red-700 underline";
+                    link.textContent = `${source.title} (${source.uri.substring(0, 50)}...)`;
+                    listItem.appendChild(link);
+                    sourceList.appendChild(listItem);
+                });
+            } else if (groundingText.includes("[Gagal mengakses data real-time]")) {
+                 sourceList.innerHTML = '<li class="text-red-500">Grounding gagal total. Hasil SEO dibuat menggunakan analisis internal model.</li>';
+            } else {
+                 // Pesan ini hanya muncul jika Grounding sukses tapi tidak ada kutipan API
+                 sourceList.innerHTML = '<li class="text-gray-400">Grounding berhasil mendapatkan tren, tetapi tidak ada sumber web yang dapat dikutip secara formal oleh API.</li>';
+            }
+
+
+            // --- TAHAP 2: OPTIMALISASI SEO (Menggunakan Output JSON) ---
+            showLoading(true, 2); // Tahap 2: Optimalisasi SEO
+
+            // PERUBAHAN SYSTEM PROMPT DAN SKEMA UNTUK OUTPUT OBJEK TUNGGAL
+            const seoSystemPrompt = "Anda adalah spesialis format JSON. Tugas Anda adalah menganalisis data tren dan kata kunci yang diberikan. Tentukan tingkat minat keseluruhan (Tinggi/Sedang/Rendah) untuk topik tersebut di negara tujuan dan berikan rekomendasi topik terbaik. Terakhir, ubah data kata kunci individu menjadi array JSON yang SANGAT ketat. PASTIKAN output Anda HANYA berupa Objek JSON tunggal dengan dua properti: 'topicAnalysis' dan 'keywords'.";
+
+            const seoUserQuery = `Analisis minat topik "${topic}" di "${country}" secara keseluruhan. Kemudian, optimalkan data kata kunci individu menjadi array. Data tren mentah: \n\n${groundingText}`;
+            
+            const responseSchema = {
+                type: "OBJECT", // Output adalah OBJEK, bukan ARRAY
+                properties: {
+                    "topicAnalysis": {
+                        "type": "OBJECT",
+                        "description": "Analisis ringkasan topik yang dimasukkan.",
+                        "properties": {
+                            "overallInterest": { "type": "STRING", "enum": ["Tinggi", "Sedang", "Rendah"], "description": "Tingkat minat keseluruhan topik ini di negara target." },
+                            "bestTopicRecommendation": { "type": "STRING", "description": "Saran topik yang lebih spesifik atau ceruk (niche) terbaik untuk dipertimbangkan di negara target." }
+                        },
+                        "propertyOrdering": ["overallInterest", "bestTopicRecommendation"]
+                    },
+                    "keywords": {
+                        "type": "ARRAY",
+                        "description": "Array dari saran kata kunci individual dan optimalisasi SEO.",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "keyword": { "type": "STRING", "description": "Frasa kata kunci utama." },
+                                "volume": { "type": "STRING", "enum": ["Tinggi", "Sedang", "Rendah"], "description": "Perkiraan volume pencarian: Tinggi, Sedang, atau Rendah." },
+                                "analysis": { "type": "STRING", "description": "Analisis singkat 1-2 kalimat tentang potensi kata kunci ini." },
+                                "seoOptimization": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "titleSuggestion": { "type": "STRING", "description": "Saran judul yang clickbait dan mengandung kata kunci." },
+                                        "descriptionSuggestion": { "type": "STRING", "description": "Saran 2 kalimat pertama deskripsi video yang kaya kata kunci." },
+                                        "tags": {
+                                            "type": "ARRAY",
+                                            "items": { "type": "STRING" },
+                                            "description": "Array dari 5-8 saran tag yang relevan."
+                                        }
+                                    }
+                                }
+                            },
+                            "propertyOrdering": ["keyword", "volume", "analysis", "seoOptimization"]
+                        }
+                    }
+                },
+                "propertyOrdering": ["topicAnalysis", "keywords"]
+            };
+            
+            const seoPayload = {
+                contents: [{ parts: [{ text: seoUserQuery }] }],
+                systemInstruction: { parts: [{ text: seoSystemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            };
+
+            try {
+                const seoFetchOperation = async () => {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(seoPayload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        console.error("Kesalahan Respons API TAHAP 2 HTTP:", response.status, errorBody);
+                        throw new Error(`Kesalahan server Tahap 2 (${response.status}).`);
+                    }
+
+                    return response.json();
+                };
+
+                const seoResult = await runWithBackoff(seoFetchOperation);
+                
+                const seoCandidate = seoResult.candidates?.[0];
+                if (!seoCandidate || !seoCandidate.content?.parts?.[0]?.text) {
+                     throw new Error("AI gagal menghasilkan output JSON (Tahap 2).");
+                }
+
+                // 1. Ekstrak dan Parse JSON
+                const jsonText = seoCandidate.content.parts[0].text;
+                const fullData = JSON.parse(jsonText); // Parsing Objek Tunggal
+                
+                // 2. Render Tabel dan Summary
+                const formattedHtml = renderKeywordTable(fullData);
+                keywordList.innerHTML = formattedHtml;
+                
+                lowVolumeNote.classList.remove('hidden');
+                resultsOutput.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Kesalahan umum Tahap 2 (Optimalisasi):", error);
+                displayError(`Gagal menyelesaikan Tahap 2. Pesan: ${error.message}.`);
+                keywordList.innerHTML = '<p class="p-4 text-red-500">Terjadi kesalahan saat menyusun struktur SEO.</p>';
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        window.onload = function() {
+            populateCountries();
+            lucide.createIcons();
+        }
+
+        window.generateKeywords = generateKeywords;
+
+    </script>
+</body>
+</html>
